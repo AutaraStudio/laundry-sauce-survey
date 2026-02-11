@@ -1,7 +1,7 @@
 export const questions = [
   {
     id: 1,
-    image: '/images/slide-1.png',
+    image: '/images/slide-1.webp',
     question: 'Overall, how satisfied are you with your Laundry Sauce subscription so far?',
     type: 'single',
     options: [
@@ -14,7 +14,7 @@ export const questions = [
   },
   {
     id: 2,
-    image: '/images/slide-2.png',
+    image: '/images/slide-2.webp',
     question: 'How does your current delivery frequency feel right now?',
     type: 'single',
     options: [
@@ -26,7 +26,7 @@ export const questions = [
   },
   {
     id: 3,
-    image: '/images/slide-3.png',
+    image: '/images/slide-3.webp',
     question: 'How happy are you with your current scent?',
     type: 'single',
     options: [
@@ -39,7 +39,7 @@ export const questions = [
   },
   {
     id: 4,
-    image: '/images/slide-4.png',
+    image: '/images/slide-4.webp',
     question: 'How would you describe the scent strength?',
     subtitle: 'Select all that apply',
     type: 'multi',
@@ -54,7 +54,7 @@ export const questions = [
   },
   {
     id: 5,
-    image: '/images/slide-5.png',
+    image: '/images/slide-5.webp',
     question: 'How likely are you to continue your subscription as-is?',
     type: 'single',
     options: [
@@ -67,7 +67,7 @@ export const questions = [
   },
   {
     id: 6,
-    image: '/images/slide-6.png',
+    image: '/images/slide-6.webp',
     question: "What's the main reason you feel this way right now?",
     type: 'text',
     conditional: {
