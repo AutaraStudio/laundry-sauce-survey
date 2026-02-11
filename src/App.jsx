@@ -10,7 +10,7 @@ CustomEase.create('smooth', '0.22, 1, 0.36, 1')
 CustomEase.create('buttery', '0.16, 1, 0.3, 1')
 CustomEase.create('imageSlide', '0.45, 0, 0.55, 1')
 
-const THANK_YOU_IMAGE = '/images/slide-6.png'
+const THANK_YOU_IMAGE = '/images/slide-6.webp'
 
 function App() {
   const [currentStep, setCurrentStep] = useState(0)
