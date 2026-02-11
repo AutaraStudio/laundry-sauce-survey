@@ -10,11 +10,14 @@ CustomEase.create('smooth', '0.22, 1, 0.36, 1')
 CustomEase.create('buttery', '0.16, 1, 0.3, 1')
 CustomEase.create('imageSlide', '0.45, 0, 0.55, 1')
 
+const THANK_YOU_IMAGE = '/images/slide-6.png'
+
 function App() {
   const [currentStep, setCurrentStep] = useState(0)
   const [answers, setAnswers] = useState({})
   const [error, setError] = useState('')
   const [isAnimating, setIsAnimating] = useState(false)
+  const [isComplete, setIsComplete] = useState(false)
 
   const contentRef = useRef(null)
   const submitWrapRef = useRef(null)
@@ -27,37 +30,32 @@ function App() {
 
   const currentAnswer = answers[current.id]
   const hasAnswer = (() => {
+    if (isComplete) return true
     if (current.type === 'multi') return currentAnswer && currentAnswer.length > 0
     return currentAnswer !== undefined && currentAnswer !== ''
   })()
 
   // Check if Q6 should be shown based on Q5 answer
-  const shouldShowQ6 = () => {
-    const q5Answer = answers[5]
-    return ['Unsure', 'Unlikely', 'Very unlikely'].includes(q5Answer)
+  const shouldShowQ6 = (answer) => {
+    return ['Unsure', 'Unlikely', 'Very unlikely'].includes(answer)
   }
 
-  // Determine if current step is the final step
-  const isFinalStep = (() => {
-    if (currentStep === questions.length - 1) return true
-    // If on Q5 (index 4) and Q6 won't be shown
-    if (currentStep === 4 && !shouldShowQ6()) return true
-    return false
-  })()
+  // Only Q6 (the text question, last index) shows "Submit"
+  const isFinalStep = currentStep === questions.length - 1
+  const buttonText = isFinalStep ? 'Submit' : 'Next'
 
   // Progress display
   const progressLabel = (() => {
+    if (isComplete) return 'Complete!'
     if (current.conditional && currentStep === questions.length - 1) return 'Complete!'
     return `${currentStep + 1} of ${totalQuestions}`
   })()
 
   const progressPercent = (() => {
+    if (isComplete) return 100
     if (current.conditional && currentStep === questions.length - 1) return 100
     return ((currentStep + 1) / totalQuestions) * 100
   })()
-
-  // Button text
-  const buttonText = isFinalStep ? 'Submit' : 'Next'
 
   // Preload all images on mount
   useEffect(() => {
@@ -65,12 +63,16 @@ function App() {
       const img = new Image()
       img.src = q.image
     })
+    const thankImg = new Image()
+    thankImg.src = THANK_YOU_IMAGE
   }, [])
 
   // Animate content in
   useLayoutEffect(() => {
     gsap.set(contentRef.current, { opacity: 0, filter: 'blur(12px)', y: 8 })
-    gsap.set(submitWrapRef.current, { opacity: 0, filter: 'blur(12px)', y: 8 })
+    if (submitWrapRef.current) {
+      gsap.set(submitWrapRef.current, { opacity: 0, filter: 'blur(12px)', y: 8 })
+    }
 
     const tl = gsap.timeline({ delay: 0.05 })
 
@@ -93,17 +95,17 @@ function App() {
     }
 
     return () => tl.kill()
-  }, [currentStep])
+  }, [currentStep, isComplete])
 
-  // Transition out then switch step
-  const transitionToStep = useCallback((nextStep) => {
+  // Animate out then call callback
+  const animateOut = useCallback((callback, nextImage) => {
     if (isAnimating) return
     setIsAnimating(true)
     setError('')
 
     const tl = gsap.timeline({
       onComplete: () => {
-        setCurrentStep(nextStep)
+        callback()
         setIsAnimating(false)
       }
     })
@@ -126,10 +128,10 @@ function App() {
       }, 0)
     }
 
-    if (currentImageRef.current && nextImageRef.current) {
+    if (currentImageRef.current && nextImageRef.current && nextImage) {
       const panelHeight = imagePanelRef.current.offsetHeight
 
-      nextImageRef.current.src = questions[nextStep].image
+      nextImageRef.current.src = nextImage
       gsap.set(nextImageRef.current, { y: panelHeight, opacity: 1, force3D: true })
       gsap.set(currentImageRef.current, { force3D: true })
 
@@ -150,8 +152,33 @@ function App() {
 
   }, [isAnimating])
 
+  // Transition to a specific step
+  const transitionToStep = useCallback((nextStep) => {
+    const nextImage = questions[nextStep].image
+    animateOut(() => {
+      setCurrentStep(nextStep)
+    }, nextImage)
+  }, [animateOut])
+
+  // Transition to thank you
+  const transitionToThankYou = useCallback(() => {
+    animateOut(() => {
+      setIsComplete(true)
+    }, THANK_YOU_IMAGE)
+  }, [animateOut])
+
   // Reset images after step change
   useEffect(() => {
+    if (isComplete) {
+      if (currentImageRef.current) {
+        currentImageRef.current.src = THANK_YOU_IMAGE
+        gsap.set(currentImageRef.current, { y: 0, opacity: 1 })
+      }
+      if (nextImageRef.current) {
+        gsap.set(nextImageRef.current, { y: 0, opacity: 0 })
+      }
+      return
+    }
     if (currentImageRef.current) {
       currentImageRef.current.src = questions[currentStep].image
       gsap.set(currentImageRef.current, { y: 0, opacity: 1 })
@@ -159,7 +186,7 @@ function App() {
     if (nextImageRef.current) {
       gsap.set(nextImageRef.current, { y: 0, opacity: 0 })
     }
-  }, [currentStep])
+  }, [currentStep, isComplete])
 
   // Single select (no auto-advance)
   const handleSingleSelect = useCallback((option) => {
@@ -189,58 +216,62 @@ function App() {
 
   // Submit / Next
   const handleSubmit = useCallback(() => {
-    if (isAnimating) return
+    if (isAnimating || isComplete) return
     if (!hasAnswer) {
       setError('Please complete this question before continuing')
       return
     }
     setError('')
 
+    // If on Q6 (text question), submit and go to thank you
     if (isFinalStep) {
       console.log('Survey complete:', answers)
-      alert('Survey submitted! Check console for data.')
-    } else {
-      // Determine next step
-      let nextStep = currentStep + 1
-
-      // Check if next question is conditional
-      const nextQuestion = questions[nextStep]
-      if (nextQuestion && nextQuestion.conditional) {
-        const { dependsOn, showIf } = nextQuestion.conditional
-        const dependsOnAnswer = answers[dependsOn]
-        if (!showIf.includes(dependsOnAnswer)) {
-          // Skip conditional question — this means we should submit
-          console.log('Survey complete:', { ...answers, [current.id]: currentAnswer })
-          alert('Survey submitted! Check console for data.')
-          return
-        }
-      }
-
-      transitionToStep(nextStep)
+      transitionToThankYou()
+      return
     }
-  }, [hasAnswer, isFinalStep, answers, isAnimating, currentStep, transitionToStep, current.id, currentAnswer])
+
+    // Determine next step
+    const nextStep = currentStep + 1
+    const nextQuestion = questions[nextStep]
+
+    // If next question is conditional, check if it should show
+    if (nextQuestion && nextQuestion.conditional) {
+      const currentVal = currentAnswer
+      if (!shouldShowQ6(currentVal)) {
+        // Skip Q6, go straight to thank you
+        console.log('Survey complete:', answers)
+        transitionToThankYou()
+        return
+      }
+    }
+
+    transitionToStep(nextStep)
+  }, [hasAnswer, isFinalStep, answers, isAnimating, isComplete, currentStep, currentAnswer, transitionToStep, transitionToThankYou])
 
   // Enter key
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.key === 'Enter') {
+      if (e.key === 'Enter' && !isComplete) {
         e.preventDefault()
         handleSubmit()
       }
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [handleSubmit])
+  }, [handleSubmit, isComplete])
 
   useEffect(() => {
     setError('')
   }, [currentStep])
 
+  // Get current image src
+  const currentImageSrc = isComplete ? THANK_YOU_IMAGE : current.image
+
   return (
     <div className="survey-container">
       {/* LEFT - Image */}
       <div className="survey-image-panel" ref={imagePanelRef}>
-        <img ref={currentImageRef} src={current.image} alt="" className="survey-image" />
+        <img ref={currentImageRef} src={currentImageSrc} alt="" className="survey-image" />
         <img ref={nextImageRef} src="" alt="" className="survey-image" style={{ opacity: 0 }} />
       </div>
 
@@ -276,63 +307,74 @@ function App() {
         </div>
 
         <div className="survey-form-scroll">
-          <div ref={contentRef} className="survey-content">
-            <h2 className="survey-question">{current.question}</h2>
-            {current.subtitle && (
-              <p className="survey-subtitle">{current.subtitle}</p>
-            )}
-
-            <div className="survey-options-wrapper">
-              <div className="survey-options">
-
-                {/* Single Select */}
-                {current.type === 'single' && current.options.map((opt) => (
-                  <button
-                    key={opt}
-                    className={`option-btn ${currentAnswer === opt ? 'selected' : ''}`}
-                    onClick={() => handleSingleSelect(opt)}
-                  >
-                    {opt}
-                  </button>
-                ))}
-
-                {/* Multi Select */}
-                {current.type === 'multi' && current.options.map((opt) => {
-                  const isChecked = (currentAnswer || []).includes(opt)
-                  return (
-                    <label key={opt} className={`option-checkbox ${isChecked ? 'selected' : ''}`}>
-                      <input type="checkbox" checked={isChecked} onChange={() => handleMultiToggle(opt)} />
-                      <span className="check-indicator">
-                        <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
-                          <path d="M1 4L3.5 6.5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                      </span>
-                      <span className="checkbox-label-text">{opt}</span>
-                    </label>
-                  )
-                })}
-
-                {/* Text */}
-                {current.type === 'text' && (
-                  <textarea
-                    className="option-textarea"
-                    placeholder="Type your answer here..."
-                    rows={5}
-                    value={currentAnswer || ''}
-                    onChange={(e) => handleTextChange(e.target.value)}
-                  />
+          {isComplete ? (
+            /* Thank You Screen */
+            <div ref={contentRef} className="survey-content thank-you-content">
+              <h2 className="survey-question thank-you-heading">Thank you!</h2>
+              <p className="thank-you-message">We appreciate you taking the time to share your feedback. Your responses help us make Laundry Sauce even better.</p>
+            </div>
+          ) : (
+            /* Survey Questions */
+            <>
+              <div ref={contentRef} className="survey-content">
+                <h2 className="survey-question">{current.question}</h2>
+                {current.subtitle && (
+                  <p className="survey-subtitle">{current.subtitle}</p>
                 )}
+
+                <div className="survey-options-wrapper">
+                  <div className="survey-options">
+
+                    {/* Single Select */}
+                    {current.type === 'single' && current.options.map((opt) => (
+                      <button
+                        key={opt}
+                        className={`option-btn ${currentAnswer === opt ? 'selected' : ''}`}
+                        onClick={() => handleSingleSelect(opt)}
+                      >
+                        {opt}
+                      </button>
+                    ))}
+
+                    {/* Multi Select */}
+                    {current.type === 'multi' && current.options.map((opt) => {
+                      const isChecked = (currentAnswer || []).includes(opt)
+                      return (
+                        <label key={opt} className={`option-checkbox ${isChecked ? 'selected' : ''}`}>
+                          <input type="checkbox" checked={isChecked} onChange={() => handleMultiToggle(opt)} />
+                          <span className="check-indicator">
+                            <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+                              <path d="M1 4L3.5 6.5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                          </span>
+                          <span className="checkbox-label-text">{opt}</span>
+                        </label>
+                      )
+                    })}
+
+                    {/* Text */}
+                    {current.type === 'text' && (
+                      <textarea
+                        className="option-textarea"
+                        placeholder="Type your answer here..."
+                        rows={5}
+                        value={currentAnswer || ''}
+                        onChange={(e) => handleTextChange(e.target.value)}
+                      />
+                    )}
+                  </div>
+
+                  <div className={`error-tooltip ${error ? 'visible' : ''}`}>{error}</div>
+                </div>
               </div>
 
-              <div className={`error-tooltip ${error ? 'visible' : ''}`}>{error}</div>
-            </div>
-          </div>
-
-          <div ref={submitWrapRef} className="survey-submit">
-            <button className="submit-btn" onClick={handleSubmit}>
-              {buttonText}
-            </button>
-          </div>
+              <div ref={submitWrapRef} className="survey-submit">
+                <button className="submit-btn" onClick={handleSubmit}>
+                  {buttonText}
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>
