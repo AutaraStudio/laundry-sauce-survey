@@ -53,9 +53,45 @@ function getAnimItems(container) {
   return Array.from(container.querySelectorAll('.anim-item'))
 }
 
+// Parse URL params to pre-fill answers from email links
+// Usage: ?question=1&answer=1
+// "question" = question number (1-6), "answer" = option number (1-5)
+function getEmailPrefill() {
+  try {
+    const params = new URLSearchParams(window.location.search)
+    const qParam = params.get('question')
+    const aParam = params.get('answer')
+    if (!qParam || aParam === null) return null
+
+    const qIndex = parseInt(qParam, 10) - 1 // question=1 means first question
+    if (isNaN(qIndex) || qIndex < 0 || qIndex >= questions.length) return null
+
+    const question = questions[qIndex]
+    if (!question.options) return null
+
+    // answer=1 means first option, answer=2 means second, etc.
+    const aIndex = parseInt(aParam, 10) - 1
+    if (isNaN(aIndex) || aIndex < 0 || aIndex >= question.options.length) return null
+    const answerValue = question.options[aIndex]
+
+    // Advance to the next step
+    let startStep = qIndex + 1
+    if (startStep >= questions.length) startStep = questions.length - 1
+
+    return {
+      answers: { [question.id]: answerValue },
+      startStep,
+    }
+  } catch {
+    return null
+  }
+}
+
+const emailPrefill = getEmailPrefill()
+
 function App() {
-  const [currentStep, setCurrentStep] = useState(0)
-  const [answers, setAnswers] = useState({})
+  const [currentStep, setCurrentStep] = useState(emailPrefill?.startStep ?? 0)
+  const [answers, setAnswers] = useState(emailPrefill?.answers ?? {})
   const [error, setError] = useState('')
   const [isAnimating, setIsAnimating] = useState(false)
   const [showThankYou, setShowThankYou] = useState(false)
@@ -69,7 +105,7 @@ function App() {
   const surveyContainerRef = useRef(null)
   const autoAdvanceTimer = useRef(null)
 
-  const answersRef = useRef(answers)
+  const answersRef = useRef(emailPrefill?.answers ?? {})
   useEffect(() => {
     answersRef.current = answers
   }, [answers])
@@ -119,7 +155,7 @@ function App() {
     return ((currentStep + 1) / totalQuestions) * 100
   })()
 
-  // Preload all images on mount
+  // Preload all images on mount + clean URL params
   useEffect(() => {
     questions.forEach((q) => {
       const img = new Image()
@@ -127,6 +163,11 @@ function App() {
     })
     const thankImg = new Image()
     thankImg.src = THANK_YOU.image
+
+    // Clean email prefill params from URL
+    if (emailPrefill) {
+      window.history.replaceState({}, '', window.location.pathname)
+    }
   }, [])
 
   // ─── Staggered entrance animation ───
