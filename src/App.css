@@ -323,7 +323,7 @@ body {
   background: var(--color-black);
   color: #fff;
   border: none;
-  border-radius: 0px;
+  border-radius: var(--radius-box);
   font-family: var(--font-body);
   font-size: clamp(12px, 1vw, 14px);
   font-weight: 500;
@@ -441,10 +441,10 @@ body {
 
 .thankyou-heading {
   font-family: var(--font-body);
-  font-size: clamp(36px, 4.5vw, 56px);
-  font-weight: 700;
+  font-size: clamp(20px, 2vw, 28px);
+  font-weight: 500;
   color: #fff;
-  line-height: 1.1;
+  line-height: 1.4;
 }
 
 .thankyou-body {
@@ -539,7 +539,7 @@ body {
   }
 
   .thankyou-heading {
-    font-size: clamp(28px, 8vw, 40px);
+    font-size: clamp(20px, 5.5vw, 28px);
   }
 
   .thankyou-content {
