@@ -54,13 +54,13 @@ function getAnimItems(container) {
 }
 
 // Parse URL params to pre-fill answers from email links
-// Usage: ?question=1&answer=1
+// Usage: ?question=1&answer=1  (or short form: ?q=1&a=1)
 // "question" = question number (1-6), "answer" = option number (1-5)
 function getEmailPrefill() {
   try {
     const params = new URLSearchParams(window.location.search)
-    const qParam = params.get('question')
-    const aParam = params.get('answer')
+    const qParam = params.get('question') || params.get('q')
+    const aParam = params.get('answer') ?? params.get('a')
     if (!qParam || aParam === null) return null
 
     const qIndex = parseInt(qParam, 10) - 1 // question=1 means first question
@@ -205,58 +205,57 @@ function App() {
     return () => tl.kill()
   }, [currentStep, showThankYou])
 
-  // ─── Transition to thank you: unified crossfade ───
+  // ─── Transition to thank you: just flip the flag ───
   const transitionToThankYou = useCallback(() => {
-    if (isAnimating) return
+    if (isAnimating || showThankYou) return
     setIsAnimating(true)
     setError('')
-
     setShowThankYou(true)
+  }, [isAnimating, showThankYou])
 
-    requestAnimationFrame(() => {
-      if (!thankYouRef.current) {
-        setIsAnimating(false)
-        return
-      }
+  // ─── Animate thank-you overlay once it mounts ───
+  useEffect(() => {
+    if (!showThankYou || !thankYouRef.current) return
 
-      const tyItems = getAnimItems(thankYouRef.current)
-      gsap.set(thankYouRef.current, { opacity: 0 })
-      gsap.set(tyItems, { opacity: 0, y: 24, filter: 'blur(10px)' })
+    const tyItems = getAnimItems(thankYouRef.current)
+    gsap.set(thankYouRef.current, { opacity: 0 })
+    gsap.set(tyItems, { opacity: 0, y: 24, filter: 'blur(10px)' })
 
-      const tl = gsap.timeline({
-        onComplete: () => setIsAnimating(false)
-      })
-
-      // Fade out the entire survey
-      if (surveyContainerRef.current) {
-        tl.to(surveyContainerRef.current, {
-          opacity: 0,
-          scale: 0.97,
-          filter: 'blur(6px)',
-          duration: 0.7,
-          ease: 'power2.inOut',
-        }, 0)
-      }
-
-      // Crossfade in the thank you backdrop
-      tl.to(thankYouRef.current, {
-        opacity: 1,
-        duration: 0.8,
-        ease: 'power2.inOut',
-      }, 0.15)
-
-      // Stagger in thank you content elements
-      tyItems.forEach((el, i) => {
-        tl.to(el, {
-          opacity: 1,
-          y: 0,
-          filter: 'blur(0px)',
-          duration: 0.7,
-          ease: 'buttery',
-        }, 0.4 + i * 0.12)
-      })
+    const tl = gsap.timeline({
+      onComplete: () => setIsAnimating(false)
     })
-  }, [isAnimating])
+
+    // Fade out the entire survey
+    if (surveyContainerRef.current) {
+      tl.to(surveyContainerRef.current, {
+        opacity: 0,
+        scale: 0.97,
+        filter: 'blur(6px)',
+        duration: 0.7,
+        ease: 'power2.inOut',
+      }, 0)
+    }
+
+    // Crossfade in the thank you backdrop
+    tl.to(thankYouRef.current, {
+      opacity: 1,
+      duration: 0.8,
+      ease: 'power2.inOut',
+    }, 0.15)
+
+    // Stagger in thank you content elements
+    tyItems.forEach((el, i) => {
+      tl.to(el, {
+        opacity: 1,
+        y: 0,
+        filter: 'blur(0px)',
+        duration: 0.7,
+        ease: 'buttery',
+      }, 0.4 + i * 0.12)
+    })
+
+    return () => tl.kill()
+  }, [showThankYou])
 
   // ─── Staggered exit + image slide ───
   const transitionToStep = useCallback((nextStep) => {

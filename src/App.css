@@ -323,7 +323,7 @@ body {
   background: var(--color-black);
   color: #fff;
   border: none;
-  border-radius: var(--radius-box);
+  border-radius: 0px;
   font-family: var(--font-body);
   font-size: clamp(12px, 1vw, 14px);
   font-weight: 500;
