@@ -499,7 +499,7 @@ body {
   .survey-form-scroll {
     max-width: 100%;
     overflow-y: auto;
-    padding-bottom: 120px;
+    padding-bottom: 40px;
   }
 
   .survey-question {
@@ -522,13 +522,7 @@ body {
   }
 
   .survey-submit {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    padding: clamp(16px, 4vw, 24px) clamp(24px, 6vw, 40px);
-    background: var(--color-bg);
-    z-index: 10;
+    padding: clamp(24px, 5vw, 32px) 0;
   }
 
   .submit-btn {
