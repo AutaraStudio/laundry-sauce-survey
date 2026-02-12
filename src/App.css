@@ -1,14 +1,5 @@
 /* Inter Font — loaded via <link> in index.html */
 
-/* D-DIN Condensed Bold for headings */
-@font-face {
-  font-family: 'D-DINCondensed-Bold';
-  src: url('/fonts/D-DINCondensed-Bold.otf') format('opentype');
-  font-weight: 700;
-  font-style: normal;
-  font-display: block;
-}
-
 :root {
   --color-primary: #1A1A1A;
   --color-primary-hover: #333333;
@@ -24,7 +15,6 @@
   --color-black: #1A1A1A;
   --radius-pill: 0px;
   --radius-box: 0px;
-  --font-heading: 'D-DINCondensed-Bold', 'Arial Narrow', 'Impact', sans-serif;
   --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
@@ -165,25 +155,22 @@ body {
 }
 
 .survey-question {
-  font-family: var(--font-heading);
-  font-size: clamp(40px, 4.5vw, 62px);
-  font-weight: 700;
+  font-family: var(--font-body);
+  font-size: clamp(24px, 2.8vw, 36px);
+  font-weight: 600;
   color: var(--color-text);
-  line-height: 0.95;
+  line-height: 1.25;
   width: 100%;
-  margin-bottom: clamp(28px, 3vw, 44px);
-  text-transform: uppercase;
-  letter-spacing: 0.01em;
+  margin-bottom: clamp(8px, 1vw, 12px);
 }
 
 .survey-subtitle {
   font-family: var(--font-body);
-  font-size: clamp(15px, 1.2vw, 18px);
-  color: var(--color-text);
+  font-size: clamp(14px, 1.1vw, 16px);
+  color: var(--color-text-muted);
   font-weight: 400;
   line-height: 1.5;
-  margin-top: clamp(-16px, -1.5vw, -24px);
-  margin-bottom: clamp(8px, 0.8vw, 12px);
+  margin-bottom: clamp(20px, 2vw, 32px);
 }
 
 .survey-options {
@@ -445,13 +432,11 @@ body {
 }
 
 .thankyou-heading {
-  font-family: var(--font-heading);
-  font-size: clamp(36px, 4.5vw, 68px);
+  font-family: var(--font-body);
+  font-size: clamp(36px, 4.5vw, 56px);
   font-weight: 700;
   color: #fff;
-  line-height: 0.95;
-  text-transform: uppercase;
-  letter-spacing: 0.01em;
+  line-height: 1.1;
 }
 
 .thankyou-body {
@@ -518,7 +503,7 @@ body {
   }
 
   .survey-question {
-    font-size: clamp(30px, 9vw, 44px);
+    font-size: clamp(22px, 6vw, 30px);
     text-align: left;
     max-width: 100%;
   }
@@ -555,7 +540,7 @@ body {
   }
 
   .thankyou-heading {
-    font-size: clamp(30px, 9vw, 48px);
+    font-size: clamp(28px, 8vw, 40px);
   }
 
   .thankyou-content {

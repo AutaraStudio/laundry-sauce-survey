@@ -67,6 +67,7 @@ function App() {
   const nextImageRef = useRef(null)
   const thankYouRef = useRef(null)
   const surveyContainerRef = useRef(null)
+  const autoAdvanceTimer = useRef(null)
 
   const answersRef = useRef(answers)
   useEffect(() => {
@@ -87,8 +88,19 @@ function App() {
     return ['Unsure', 'Unlikely', 'Very unlikely'].includes(answer)
   }
 
+  // Show button only for multi-select and text (single-select auto-advances)
+  const showButton = current.type === 'multi' || current.type === 'text'
   const isFinalStep = currentStep === questions.length - 1
-  const buttonText = isFinalStep ? 'Submit' : 'Next'
+
+  // Button text logic
+  const buttonText = (() => {
+    if (isFinalStep) return 'Submit'
+    // Q5 (index 4): show Submit if positive, Next if negative/conditional
+    if (currentStep === 4) {
+      if (currentAnswer && !shouldShowQ6(currentAnswer)) return 'Submit'
+    }
+    return 'Next'
+  })()
 
   // Progress display
   const progressLabel = (() => {
@@ -278,14 +290,48 @@ function App() {
     }
   }, [currentStep, showThankYou])
 
-  // Single select
+  // Single select — store value and auto-advance
   const handleSingleSelect = useCallback((option) => {
     if (isAnimating) return
     setError('')
+
+    // Clear any pending auto-advance
+    if (autoAdvanceTimer.current) {
+      clearTimeout(autoAdvanceTimer.current)
+      autoAdvanceTimer.current = null
+    }
+
     const updated = { ...answersRef.current, [current.id]: option }
     answersRef.current = updated
     setAnswers(updated)
-  }, [current.id, isAnimating])
+
+    // Auto-advance after a beat so user sees their selection
+    autoAdvanceTimer.current = setTimeout(() => {
+      autoAdvanceTimer.current = null
+
+      const nextStep = currentStep + 1
+      const nextQuestion = questions[nextStep]
+
+      // Check if next question is conditional and should be skipped
+      if (nextQuestion && nextQuestion.conditional) {
+        if (!shouldShowQ6(option)) {
+          // Skip Q6, go straight to thank you
+          console.log('Survey complete:', updated)
+          transitionToThankYou()
+          return
+        }
+      }
+
+      // If this was the last step, go to thank you
+      if (currentStep >= questions.length - 1) {
+        console.log('Survey complete:', updated)
+        transitionToThankYou()
+        return
+      }
+
+      transitionToStep(nextStep)
+    }, 350)
+  }, [current.id, isAnimating, currentStep, transitionToStep, transitionToThankYou])
 
   // Multi select toggle
   const handleMultiToggle = (option) => {
@@ -313,6 +359,13 @@ function App() {
   // Submit / Next
   const handleSubmit = useCallback(() => {
     if (isAnimating || showThankYou) return
+
+    // Cancel any pending auto-advance
+    if (autoAdvanceTimer.current) {
+      clearTimeout(autoAdvanceTimer.current)
+      autoAdvanceTimer.current = null
+    }
+
     if (!hasAnswer) {
       setError('Please complete this question before continuing')
       return
@@ -347,18 +400,25 @@ function App() {
   // Enter key
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.key === 'Enter' && !showThankYou) {
+      if (e.key === 'Enter' && !showThankYou && showButton) {
         e.preventDefault()
         handleSubmit()
       }
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [handleSubmit, showThankYou])
+  }, [handleSubmit, showThankYou, showButton])
 
   useEffect(() => {
     setError('')
   }, [currentStep])
+
+  // Clean up auto-advance timer
+  useEffect(() => {
+    return () => {
+      if (autoAdvanceTimer.current) clearTimeout(autoAdvanceTimer.current)
+    }
+  }, [])
 
   return (
     <>
@@ -435,11 +495,13 @@ function App() {
               </div>
             </div>
 
-            <div ref={submitWrapRef} className="survey-submit">
-              <button className="submit-btn" onClick={handleSubmit}>
-                {buttonText}
-              </button>
-            </div>
+            {showButton && (
+              <div ref={submitWrapRef} className="survey-submit">
+                <button className="submit-btn" onClick={handleSubmit}>
+                  {buttonText}
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
