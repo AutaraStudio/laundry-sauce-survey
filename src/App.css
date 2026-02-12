@@ -84,7 +84,6 @@ body {
   width: 100%;
   max-width: 440px;
   flex-shrink: 0;
-  margin-bottom: clamp(32px, 4vw, 56px);
 }
 
 .survey-logo {
@@ -93,10 +92,20 @@ body {
   color: var(--color-text);
 }
 
-.survey-progress-wrapper {
+/* Vertically centers everything below the logo */
+.survey-form-center {
   width: 100%;
   max-width: 440px;
-  margin-bottom: clamp(32px, 3.5vw, 52px);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.survey-progress-wrapper {
+  width: 100%;
+  margin-bottom: clamp(24px, 2.5vw, 36px);
   flex-shrink: 0;
 }
 
@@ -127,10 +136,8 @@ body {
 /* Scrollable form area */
 .survey-form-scroll {
   width: 100%;
-  max-width: 440px;
   display: flex;
   flex-direction: column;
-  flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
   -ms-overflow-style: none;
@@ -483,24 +490,16 @@ body {
   .survey-logo-wrapper {
     max-width: 100%;
     text-align: center;
-    margin-bottom: clamp(24px, 6vw, 40px);
   }
 
-  .survey-progress-wrapper {
-    margin-bottom: clamp(28px, 6vw, 44px);
+  .survey-form-center {
+    max-width: 100%;
   }
 
   .survey-form-scroll {
     max-width: 100%;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
     overflow-y: auto;
     padding-bottom: 120px;
-  }
-
-  .survey-content {
-    flex: 1;
   }
 
   .survey-question {

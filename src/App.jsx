@@ -88,8 +88,8 @@ function App() {
     return ['Unsure', 'Unlikely', 'Very unlikely'].includes(answer)
   }
 
-  // Always show button (visual cue), single-select also auto-advances
-  const showButton = true
+  // Only show button on multi-select and text slides (single-select auto-advances)
+  const showButton = current.type === 'multi' || current.type === 'text'
   const isFinalStep = currentStep === questions.length - 1
 
   // Button text logic
@@ -435,73 +435,75 @@ function App() {
             <Logo className="survey-logo" />
           </div>
 
-          <div className="survey-progress-wrapper">
-            <div className="survey-progress-label">{progressLabel}</div>
-            <div className="survey-progress-track">
-              <div className="survey-progress-fill" style={{ width: `${progressPercent}%` }} />
+          <div className="survey-form-center">
+            <div className="survey-progress-wrapper">
+              <div className="survey-progress-label">{progressLabel}</div>
+              <div className="survey-progress-track">
+                <div className="survey-progress-fill" style={{ width: `${progressPercent}%` }} />
+              </div>
             </div>
-          </div>
 
-          <div className="survey-form-scroll" ref={formAreaRef}>
-            <div className="survey-content">
-              <h2 className="anim-item survey-question">{current.question}</h2>
-              {current.subtitle && (
-                <p className="anim-item survey-subtitle">{current.subtitle}</p>
-              )}
+            <div className="survey-form-scroll" ref={formAreaRef}>
+              <div className="survey-content">
+                <h2 className="anim-item survey-question">{current.question}</h2>
+                {current.subtitle && (
+                  <p className="anim-item survey-subtitle">{current.subtitle}</p>
+                )}
 
-              <div className="anim-item survey-options-wrapper">
-                <div className="survey-options">
+                <div className="anim-item survey-options-wrapper">
+                  <div className="survey-options">
 
-                  {/* Single Select */}
-                  {current.type === 'single' && current.options.map((opt) => (
-                    <button
-                      key={opt}
-                      className={`option-btn ${currentAnswer === opt ? 'selected' : ''}`}
-                      onClick={() => handleSingleSelect(opt)}
-                    >
-                      {opt}
-                    </button>
-                  ))}
+                    {/* Single Select */}
+                    {current.type === 'single' && current.options.map((opt) => (
+                      <button
+                        key={opt}
+                        className={`option-btn ${currentAnswer === opt ? 'selected' : ''}`}
+                        onClick={() => handleSingleSelect(opt)}
+                      >
+                        {opt}
+                      </button>
+                    ))}
 
-                  {/* Multi Select */}
-                  {current.type === 'multi' && current.options.map((opt) => {
-                    const isChecked = (currentAnswer || []).includes(opt)
-                    return (
-                      <label key={opt} className={`option-checkbox ${isChecked ? 'selected' : ''}`}>
-                        <input type="checkbox" checked={isChecked} onChange={() => handleMultiToggle(opt)} />
-                        <span className="check-indicator">
-                          <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
-                            <path d="M1 4L3.5 6.5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                          </svg>
-                        </span>
-                        <span className="checkbox-label-text">{opt}</span>
-                      </label>
-                    )
-                  })}
+                    {/* Multi Select */}
+                    {current.type === 'multi' && current.options.map((opt) => {
+                      const isChecked = (currentAnswer || []).includes(opt)
+                      return (
+                        <label key={opt} className={`option-checkbox ${isChecked ? 'selected' : ''}`}>
+                          <input type="checkbox" checked={isChecked} onChange={() => handleMultiToggle(opt)} />
+                          <span className="check-indicator">
+                            <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+                              <path d="M1 4L3.5 6.5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                          </span>
+                          <span className="checkbox-label-text">{opt}</span>
+                        </label>
+                      )
+                    })}
 
-                  {/* Text */}
-                  {current.type === 'text' && (
-                    <textarea
-                      className="option-textarea"
-                      placeholder="Type your answer here..."
-                      rows={5}
-                      value={currentAnswer || ''}
-                      onChange={(e) => handleTextChange(e.target.value)}
-                    />
-                  )}
+                    {/* Text */}
+                    {current.type === 'text' && (
+                      <textarea
+                        className="option-textarea"
+                        placeholder="Type your answer here..."
+                        rows={5}
+                        value={currentAnswer || ''}
+                        onChange={(e) => handleTextChange(e.target.value)}
+                      />
+                    )}
+                  </div>
+
+                  <div className={`error-tooltip ${error ? 'visible' : ''}`}>{error}</div>
                 </div>
-
-                <div className={`error-tooltip ${error ? 'visible' : ''}`}>{error}</div>
               </div>
+
+              {showButton && (
+                <div ref={submitWrapRef} className="survey-submit">
+                  <button className="submit-btn" onClick={handleSubmit}>
+                    {buttonText}
+                  </button>
+                </div>
+              )}
             </div>
-
-            {showButton && (
-              <div ref={submitWrapRef} className="survey-submit">
-                <button className="submit-btn" onClick={handleSubmit}>
-                  {buttonText}
-                </button>
-              </div>
-            )}
           </div>
         </div>
       </div>
