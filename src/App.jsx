@@ -88,14 +88,14 @@ function App() {
     return ['Unsure', 'Unlikely', 'Very unlikely'].includes(answer)
   }
 
-  // Show button only for multi-select and text (single-select auto-advances)
-  const showButton = current.type === 'multi' || current.type === 'text'
+  // Always show button (visual cue), single-select also auto-advances
+  const showButton = true
   const isFinalStep = currentStep === questions.length - 1
 
   // Button text logic
   const buttonText = (() => {
     if (isFinalStep) return 'Submit'
-    // Q5 (index 4): show Submit if positive, Next if negative/conditional
+    // Q5 (index 4): show Submit if positive (goes straight to thank you)
     if (currentStep === 4) {
       if (currentAnswer && !shouldShowQ6(currentAnswer)) return 'Submit'
     }

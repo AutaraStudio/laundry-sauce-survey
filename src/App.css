@@ -13,8 +13,8 @@
   --color-text-light: #6A6560;
   --color-error: #E53E3E;
   --color-black: #1A1A1A;
-  --radius-pill: 0px;
-  --radius-box: 0px;
+  --radius-pill: 50px;
+  --radius-box: 10px;
   --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
@@ -156,21 +156,22 @@ body {
 
 .survey-question {
   font-family: var(--font-body);
-  font-size: clamp(24px, 2.8vw, 36px);
-  font-weight: 600;
+  font-size: clamp(20px, 2vw, 28px);
+  font-weight: 500;
   color: var(--color-text);
-  line-height: 1.25;
+  line-height: 1.4;
   width: 100%;
-  margin-bottom: clamp(8px, 1vw, 12px);
+  margin-bottom: clamp(24px, 2.5vw, 36px);
 }
 
 .survey-subtitle {
   font-family: var(--font-body);
-  font-size: clamp(14px, 1.1vw, 16px);
+  font-size: clamp(13px, 1vw, 15px);
   color: var(--color-text-muted);
   font-weight: 400;
   line-height: 1.5;
-  margin-bottom: clamp(20px, 2vw, 32px);
+  margin-top: clamp(-16px, -1.5vw, -24px);
+  margin-bottom: clamp(20px, 2vw, 28px);
 }
 
 .survey-options {
@@ -212,7 +213,7 @@ body {
   align-items: center;
   gap: 14px;
   width: 100%;
-  padding: clamp(10px, 0.9vw, 14px) 4px;
+  padding: clamp(6px, 0.5vw, 8px) 4px;
   background: transparent;
   border: none;
   border-radius: 0;
@@ -503,9 +504,8 @@ body {
   }
 
   .survey-question {
-    font-size: clamp(22px, 6vw, 30px);
-    text-align: left;
-    max-width: 100%;
+    font-size: clamp(20px, 5.5vw, 28px);
+    text-align: center;
   }
 
   .survey-subtitle {
@@ -518,7 +518,7 @@ body {
   }
 
   .option-checkbox {
-    padding: clamp(10px, 2.5vw, 14px) 4px;
+    padding: clamp(6px, 1.5vw, 8px) 4px;
     font-size: clamp(14px, 3.8vw, 16px);
   }
 
