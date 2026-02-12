@@ -74,6 +74,10 @@ function App() {
     answersRef.current = answers
   }, [answers])
 
+  // Refs to always get latest transition functions (avoids stale closures in setTimeout)
+  const transitionToStepRef = useRef(null)
+  const transitionToThankYouRef = useRef(null)
+
   const current = questions[currentStep]
   const totalQuestions = questions.length
 
@@ -278,6 +282,10 @@ function App() {
     }
   }, [isAnimating, currentStep])
 
+  // Keep refs in sync
+  transitionToStepRef.current = transitionToStep
+  transitionToThankYouRef.current = transitionToThankYou
+
   // Reset images after step change
   useEffect(() => {
     if (showThankYou) return
@@ -317,7 +325,7 @@ function App() {
         if (!shouldShowQ6(option)) {
           // Skip Q6, go straight to thank you
           console.log('Survey complete:', updated)
-          transitionToThankYou()
+          transitionToThankYouRef.current?.()
           return
         }
       }
@@ -325,13 +333,13 @@ function App() {
       // If this was the last step, go to thank you
       if (currentStep >= questions.length - 1) {
         console.log('Survey complete:', updated)
-        transitionToThankYou()
+        transitionToThankYouRef.current?.()
         return
       }
 
-      transitionToStep(nextStep)
+      transitionToStepRef.current?.(nextStep)
     }, 350)
-  }, [current.id, isAnimating, currentStep, transitionToStep, transitionToThankYou])
+  }, [current.id, isAnimating, currentStep])
 
   // Multi select toggle
   const handleMultiToggle = (option) => {
