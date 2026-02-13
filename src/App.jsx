@@ -15,7 +15,7 @@ const STAGGER_OUT = 0.04
 const DURATION_IN = 0.55
 const DURATION_OUT = 0.28
 
-const SHEET_URL = 'https://script.google.com/macros/s/AKfycbxoRGIVmh-8lCugN6TUyKXvGkhVbFCkhbn4ux_SEk_i_QGAL_z1tD-RySXuf0SwyG6XAg/exec'
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbzhiPJ_olfiQXbmdkkhfjA-2EsHjwAqNgF_U6-ynbYMXc_pP48Thm_av2cHGBOXjDAySA/exec'
 
 const THANK_YOU = {
   image: '/images/slide-6.webp',
@@ -189,7 +189,7 @@ function App() {
     return ((currentStep + 1) / totalQuestions) * 100
   })()
 
-  // Preload all images on mount + clean URL params
+  // Preload all images on mount + clean URL params + initial sheet submission
   useEffect(() => {
     questions.forEach((q) => {
       const img = new Image()
@@ -197,6 +197,11 @@ function App() {
     })
     const thankImg = new Image()
     thankImg.src = THANK_YOU.image
+
+    // Submit immediately on load if we have an email (captures partial from email link)
+    if (emailPrefill?.email) {
+      submitToSheet(emailPrefill.answers)
+    }
 
     // Clean email prefill params from URL
     if (emailPrefill) {
@@ -391,6 +396,9 @@ function App() {
     autoAdvanceTimer.current = setTimeout(() => {
       autoAdvanceTimer.current = null
 
+      // Submit progress to sheet on every answer
+      submitToSheet(updated)
+
       const nextStep = currentStep + 1
       const nextQuestion = questions[nextStep]
 
@@ -398,7 +406,6 @@ function App() {
       if (nextQuestion && nextQuestion.conditional) {
         if (!shouldShowQ6(option)) {
           // Skip Q6, go straight to thank you
-          submitToSheet(updated)
           transitionToThankYouRef.current?.()
           return
         }
@@ -406,7 +413,6 @@ function App() {
 
       // If this was the last step, go to thank you
       if (currentStep >= questions.length - 1) {
-        submitToSheet(updated)
         transitionToThankYouRef.current?.()
         return
       }
@@ -454,9 +460,11 @@ function App() {
     }
     setError('')
 
+    // Submit progress to sheet on every step
+    submitToSheet(answersRef.current)
+
     // If on final step, submit and go to thank you
     if (isFinalStep) {
-      submitToSheet(answersRef.current)
       transitionToThankYou()
       return
     }
@@ -470,7 +478,6 @@ function App() {
       const currentVal = currentAnswer
       if (!shouldShowQ6(currentVal)) {
         // Skip Q6, go straight to thank you
-        submitToSheet(answersRef.current)
         transitionToThankYou()
         return
       }
