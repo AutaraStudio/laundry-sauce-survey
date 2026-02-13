@@ -15,6 +15,8 @@ const STAGGER_OUT = 0.04
 const DURATION_IN = 0.55
 const DURATION_OUT = 0.28
 
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbxoRGIVmh-8lCugN6TUyKXvGkhVbFCkhbn4ux_SEk_i_QGAL_z1tD-RySXuf0SwyG6XAg/exec'
+
 const THANK_YOU = {
   image: '/images/slide-6.webp',
   heading: 'Thank you for<br>your feedback!',
@@ -54,36 +56,49 @@ function getAnimItems(container) {
 }
 
 // Parse URL params to pre-fill answers from email links
-// Usage: ?question=1&answer=1  (or short form: ?q=1&a=1)
-// "question" = question number (1-6), "answer" = option number (1-5)
+// URL format: ?email=user@example.com&name=John&q=1&a=2
 function getEmailPrefill() {
   try {
     const params = new URLSearchParams(window.location.search)
+
+    // Always capture email and name
+    const email = params.get('email') || ''
+    const name = params.get('name') || ''
+
     const qParam = params.get('question') || params.get('q')
     const aParam = params.get('answer') ?? params.get('a')
-    if (!qParam || aParam === null) return null
 
-    const qIndex = parseInt(qParam, 10) - 1 // question=1 means first question
-    if (isNaN(qIndex) || qIndex < 0 || qIndex >= questions.length) return null
+    if (!qParam || aParam === null) {
+      return { email, name, answers: {}, startStep: 0 }
+    }
+
+    const qIndex = parseInt(qParam, 10) - 1
+    if (isNaN(qIndex) || qIndex < 0 || qIndex >= questions.length) {
+      return { email, name, answers: {}, startStep: 0 }
+    }
 
     const question = questions[qIndex]
-    if (!question.options) return null
+    if (!question.options) {
+      return { email, name, answers: {}, startStep: 0 }
+    }
 
-    // answer=1 means first option, answer=2 means second, etc.
     const aIndex = parseInt(aParam, 10) - 1
-    if (isNaN(aIndex) || aIndex < 0 || aIndex >= question.options.length) return null
+    if (isNaN(aIndex) || aIndex < 0 || aIndex >= question.options.length) {
+      return { email, name, answers: {}, startStep: 0 }
+    }
     const answerValue = question.options[aIndex]
 
-    // Advance to the next step
     let startStep = qIndex + 1
     if (startStep >= questions.length) startStep = questions.length - 1
 
     return {
+      email,
+      name,
       answers: { [question.id]: answerValue },
       startStep,
     }
   } catch {
-    return null
+    return { email: '', name: '', answers: {}, startStep: 0 }
   }
 }
 
@@ -109,6 +124,25 @@ function App() {
   useEffect(() => {
     answersRef.current = answers
   }, [answers])
+
+  // ─── Submit to Google Sheet ───
+  const submitToSheet = useCallback((finalAnswers) => {
+    const payload = {
+      email: emailPrefill?.email || '',
+      name: emailPrefill?.name || '',
+      q1: finalAnswers[1] || '',
+      q2: finalAnswers[2] || '',
+      q3: finalAnswers[3] || '',
+      q4: Array.isArray(finalAnswers[4]) ? finalAnswers[4].join(', ') : finalAnswers[4] || '',
+      q5: finalAnswers[5] || '',
+      q6: finalAnswers[6] || '',
+    }
+
+    fetch(SHEET_URL, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }).catch((err) => console.error('Sheet submit error:', err))
+  }, [])
 
   // Refs to always get latest transition functions (avoids stale closures in setTimeout)
   const transitionToStepRef = useRef(null)
@@ -364,7 +398,7 @@ function App() {
       if (nextQuestion && nextQuestion.conditional) {
         if (!shouldShowQ6(option)) {
           // Skip Q6, go straight to thank you
-          console.log('Survey complete:', updated)
+          submitToSheet(updated)
           transitionToThankYouRef.current?.()
           return
         }
@@ -372,14 +406,14 @@ function App() {
 
       // If this was the last step, go to thank you
       if (currentStep >= questions.length - 1) {
-        console.log('Survey complete:', updated)
+        submitToSheet(updated)
         transitionToThankYouRef.current?.()
         return
       }
 
       transitionToStepRef.current?.(nextStep)
     }, 350)
-  }, [current.id, isAnimating, currentStep])
+  }, [current.id, isAnimating, currentStep, submitToSheet])
 
   // Multi select toggle
   const handleMultiToggle = (option) => {
@@ -422,7 +456,7 @@ function App() {
 
     // If on final step, submit and go to thank you
     if (isFinalStep) {
-      console.log('Survey complete:', answersRef.current)
+      submitToSheet(answersRef.current)
       transitionToThankYou()
       return
     }
@@ -436,14 +470,14 @@ function App() {
       const currentVal = currentAnswer
       if (!shouldShowQ6(currentVal)) {
         // Skip Q6, go straight to thank you
-        console.log('Survey complete:', answersRef.current)
+        submitToSheet(answersRef.current)
         transitionToThankYou()
         return
       }
     }
 
     transitionToStep(nextStep)
-  }, [hasAnswer, isFinalStep, isAnimating, showThankYou, currentStep, currentAnswer, transitionToStep, transitionToThankYou])
+  }, [hasAnswer, isFinalStep, isAnimating, showThankYou, currentStep, currentAnswer, transitionToStep, transitionToThankYou, submitToSheet])
 
   // Enter key
   useEffect(() => {
