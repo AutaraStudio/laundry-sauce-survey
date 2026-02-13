@@ -22,7 +22,7 @@ const THANK_YOU = {
   heading: 'Thank you for<br>your feedback!',
   body: 'Your responses help us make Laundry Sauce even better.',
   linkText: 'Scent Quiz',
-  linkUrl: 'https://laundrysauce.com',
+  linkUrl: 'https://laundrysauce.com/pages/quiz#step=1',
 }
 
 const Logo = ({ className }) => (
