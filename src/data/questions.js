@@ -2,7 +2,7 @@ export const questions = [
   {
     id: 1,
     image: '/images/slide-1.webp',
-    question: 'Overall, how satisfied are you with your Laundry Sauce subscription so far?',
+    question: 'How satisfied are you with your Laundry Sauce subscription so far?',
     type: 'single',
     options: [
       'Very satisfied',
@@ -15,7 +15,7 @@ export const questions = [
   {
     id: 2,
     image: '/images/slide-2.webp',
-    question: 'How does your current delivery frequency feel right now?',
+    question: 'HHow does your current delivery frequency feel?',
     type: 'single',
     options: [
       'Just right',
@@ -55,7 +55,7 @@ export const questions = [
   {
     id: 5,
     image: '/images/slide-5.webp',
-    question: 'How likely are you to continue your subscription as-is?',
+    question: 'How likely are you to continue with your subscription?',
     type: 'single',
     options: [
       'Very likely',
@@ -68,7 +68,7 @@ export const questions = [
   {
     id: 6,
     image: '/images/slide-6.webp',
-    question: "What's the main reason you feel this way right now?",
+    question: "What's the main reason your unlikely to continue?",
     type: 'text',
     conditional: {
       dependsOn: 5,
