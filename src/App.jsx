@@ -127,6 +127,8 @@ function App() {
 
   // ─── Submit to Google Sheet ───
   const submitToSheet = useCallback((finalAnswers) => {
+    if (!emailPrefill?.email) return
+
     const payload = {
       email: emailPrefill?.email || '',
       name: emailPrefill?.name || '',
