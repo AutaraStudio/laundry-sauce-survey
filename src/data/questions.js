@@ -15,7 +15,7 @@ export const questions = [
   {
     id: 2,
     image: '/images/slide-2.webp',
-    question: 'HHow does your current delivery frequency feel?',
+    question: 'How does your current delivery frequency feel?',
     type: 'single',
     options: [
       'Just right',
