@@ -16,7 +16,7 @@ const DURATION_IN = 0.55
 const DURATION_OUT = 0.28
 
 // ⚠️ Replace this URL with your new Google Apps Script deployment URL
-const SHEET_URL = 'https://script.google.com/macros/s/AKfycbzhiPJ_olfiQXbmdkkhfjA-2EsHjwAqNgF_U6-ynbYMXc_pP48Thm_av2cHGBOXjDAySA/exec'
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbz_CuV6vl6FB5rERb_Mk45kzvicZM0PDz_KC0VObt_x54Gy9BF4WkLCrwO1ZvGyb5KM3w/exec'
 
 const THANK_YOU = {
   image: '/images/slide-6.webp',
