@@ -15,6 +15,7 @@ const STAGGER_OUT = 0.04
 const DURATION_IN = 0.55
 const DURATION_OUT = 0.28
 
+// ⚠️ Replace this URL with your new Google Apps Script deployment URL
 const SHEET_URL = 'https://script.google.com/macros/s/AKfycbzhiPJ_olfiQXbmdkkhfjA-2EsHjwAqNgF_U6-ynbYMXc_pP48Thm_av2cHGBOXjDAySA/exec'
 
 const THANK_YOU = {
@@ -56,35 +57,34 @@ function getAnimItems(container) {
 }
 
 // Parse URL params to pre-fill answers from email links
-// URL format: ?email=user@example.com&name=John&question=1&answer=2
+// URL format: ?email=user@example.com&question=1&answer=2
 function getEmailPrefill() {
   try {
     const params = new URLSearchParams(window.location.search)
 
-    // Always capture email and name
+    // Capture email
     const email = params.get('email') || ''
-    const name = params.get('name') || ''
 
     const qParam = params.get('question') || params.get('q')
     const aParam = params.get('answer') ?? params.get('a')
 
     if (!qParam || aParam === null) {
-      return { email, name, answers: {}, startStep: 0 }
+      return { email, answers: {}, startStep: 0 }
     }
 
     const qIndex = parseInt(qParam, 10) - 1
     if (isNaN(qIndex) || qIndex < 0 || qIndex >= questions.length) {
-      return { email, name, answers: {}, startStep: 0 }
+      return { email, answers: {}, startStep: 0 }
     }
 
     const question = questions[qIndex]
     if (!question.options) {
-      return { email, name, answers: {}, startStep: 0 }
+      return { email, answers: {}, startStep: 0 }
     }
 
     const aIndex = parseInt(aParam, 10) - 1
     if (isNaN(aIndex) || aIndex < 0 || aIndex >= question.options.length) {
-      return { email, name, answers: {}, startStep: 0 }
+      return { email, answers: {}, startStep: 0 }
     }
     const answerValue = question.options[aIndex]
 
@@ -93,12 +93,11 @@ function getEmailPrefill() {
 
     return {
       email,
-      name,
       answers: { [question.id]: answerValue },
       startStep,
     }
   } catch {
-    return { email: '', name: '', answers: {}, startStep: 0 }
+    return { email: '', answers: {}, startStep: 0 }
   }
 }
 
@@ -131,7 +130,6 @@ function App() {
 
     const payload = {
       email: emailPrefill?.email || '',
-      name: emailPrefill?.name || '',
       q1: finalAnswers[1] || '',
       q2: finalAnswers[2] || '',
       q3: finalAnswers[3] || '',
