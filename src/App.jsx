@@ -56,7 +56,7 @@ function getAnimItems(container) {
 }
 
 // Parse URL params to pre-fill answers from email links
-// URL format: ?email=user@example.com&name=John&q=1&a=2
+// URL format: ?email=user@example.com&name=John&question=1&answer=2
 function getEmailPrefill() {
   try {
     const params = new URLSearchParams(window.location.search)
@@ -456,7 +456,8 @@ function App() {
       autoAdvanceTimer.current = null
     }
 
-    if (!hasAnswer) {
+    // Only require an answer if the question is NOT conditional (Q6 is optional)
+    if (!hasAnswer && !current.conditional) {
       setError('Please complete this question before continuing')
       return
     }
